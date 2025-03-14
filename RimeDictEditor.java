@@ -15,6 +15,8 @@ public class RimeDictEditor {
     private JButton addButton;
     private JButton deleteButton;
     private File currentFile;
+    private JLabel statusLabel;
+    private static final String DICT_DIR = System.getProperty("user.home") + "/Library/Rime/dicts/";
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new RimeDictEditor().createAndShowGUI());
@@ -75,7 +77,7 @@ public class RimeDictEditor {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
         buttonPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        // 创建按钮，设置字体为黑色，背景色为默认
+        // 创建按钮（默认背景 + 黑色文字）
         openButton = createStyledButton("打开", e -> openFile());
         saveButton = createStyledButton("保存", e -> saveFile());
         addButton = createStyledButton("添加", e -> addNewRow());
@@ -86,31 +88,37 @@ public class RimeDictEditor {
         buttonPanel.add(addButton);
         buttonPanel.add(deleteButton);
 
+        // 状态栏
+        statusLabel = new JLabel(" 当前路径：未打开文件");
+        statusLabel.setBorder(BorderFactory.createEtchedBorder());
+
         // 主布局
         frame.setLayout(new BorderLayout());
         frame.add(buttonPanel, BorderLayout.NORTH);
         frame.add(scrollPane, BorderLayout.CENTER);
+        frame.add(statusLabel, BorderLayout.SOUTH);
     }
 
     private JButton createStyledButton(String text, ActionListener listener) {
         JButton button = new JButton(text);
         button.setPreferredSize(new Dimension(100, 35));
-        button.setFont(new Font("微软雅黑", Font.BOLD, 14));
-        button.setBackground(UIManager.getColor("Button.background"));  // Default background
-        button.setForeground(Color.BLACK);  // Set font color to black
+        button.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        button.setForeground(Color.BLACK);
         button.setFocusPainted(false);
+        
+        // 设置边框
         button.setBorder(BorderFactory.createCompoundBorder(
-            new LineBorder(button.getBackground().darker(), 1),
+            new LineBorder(new Color(150, 150, 150), 1),
             new EmptyBorder(5, 15, 5, 15)
         ));
         
         // 鼠标悬停效果
         button.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
-                button.setBackground(button.getBackground().brighter());
+                button.setBackground(new Color(240, 240, 240));
             }
             public void mouseExited(MouseEvent e) {
-                button.setBackground(UIManager.getColor("Button.background")); // Reset to default
+                button.setBackground(UIManager.getColor("Button.background"));
             }
         });
         button.addActionListener(listener);
@@ -174,7 +182,7 @@ public class RimeDictEditor {
     }
 
     private void openFile() {
-        JFileChooser fileChooser = new JFileChooser(new File("/Users/yxxiao/Library/Rime/dicts/"));
+        JFileChooser fileChooser = new JFileChooser(DICT_DIR);
         fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
             public boolean accept(File f) {
                 return f.getName().endsWith(".dict.yaml") || f.isDirectory();
@@ -193,20 +201,42 @@ public class RimeDictEditor {
     private void loadFileContent() {
         tableModel.setRowCount(0);
         try (BufferedReader reader = new BufferedReader(new FileReader(currentFile))) {
+            boolean inHeader = false;
             String line;
             while ((line = reader.readLine()) != null) {
-                if (line.startsWith("#") || line.trim().isEmpty()) continue;
+                line = line.trim();
                 
-                String[] parts = line.split("\t");
-                if (parts.length == 3) {
-                    tableModel.addRow(new Object[]{
-                        parts[0], 
-                        parts[1].replace(' ', ' '), // 保留原始空格
-                        parts[2]
-                    });
+                // 跳过注释行
+                if (line.startsWith("#")) continue;
+                
+                // 处理元数据头
+                if (line.startsWith("---")) {
+                    inHeader = true;
+                    continue;
+                }
+                if (inHeader) {
+                    if (line.startsWith("...")) {
+                        inHeader = false;
+                        continue;
+                    }
+                    if (line.startsWith("name:") || line.startsWith("version:") || line.startsWith("sort:")) {
+                        continue;
+                    }
+                }
+                
+                // 处理数据行
+                if (!line.isEmpty()) {
+                    String[] parts = line.split("\t");
+                    if (parts.length == 3) {
+                        tableModel.addRow(new Object[]{
+                            parts[0], 
+                            parts[1].replace(' ', ' '),
+                            parts[2]
+                        });
+                    }
                 }
             }
-            frame.setTitle("Rime 词典编辑器 - " + currentFile.getName());
+            statusLabel.setText(" 当前路径：" + currentFile.getAbsolutePath());
         } catch (IOException e) {
             showError("文件打开失败: " + e.getMessage());
         }
@@ -240,7 +270,7 @@ public class RimeDictEditor {
     }
 
     private void saveAsFile() {
-        JFileChooser fileChooser = new JFileChooser(new File("/Users/yxxiao/Library/Rime/dicts/"));
+        JFileChooser fileChooser = new JFileChooser(DICT_DIR);
         fileChooser.setDialogTitle("另存为");
         fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
             public boolean accept(File f) {
