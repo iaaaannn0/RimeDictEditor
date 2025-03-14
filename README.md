@@ -37,10 +37,10 @@ java RimeDictEditor
 
 
 #### Usage
-	1.	Click Open to load an existing .dict.yaml file.
-	2.	Edit the dictionary entries directly in the table.
-	3.	Click Save to save the changes to the file.
-	4.	Use Add to create a new entry and Delete to remove the selected entry.
+1.	Click Open to load an existing .dict.yaml file.
+2.	Edit the dictionary entries directly in the table.
+3.	Click Save to save the changes to the file.
+4.	Use Add to create a new entry and Delete to remove the selected entry.
 
 #### License
 
