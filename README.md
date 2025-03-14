@@ -22,6 +22,7 @@ A simple editor for managing Rime dictionary files. This tool allows users to ea
 
 #### Requirements
 •	Java 8 or later
+
 •	Swing library (bundled with Java)
 
 #### Installation
