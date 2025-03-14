@@ -13,8 +13,11 @@ A simple editor for managing Rime dictionary files. This tool allows users to ea
 
 #### Features
 •	Open and edit Rime dictionary files with a user-friendly table interface.
+
 •	Add, delete, and modify dictionary entries.
+
 •	Validate input fields: Chinese characters, pinyin (lowercase letters and spaces), and numeric weights.
+
 •	Save the dictionary file with the correct format.
 
 #### Requirements
