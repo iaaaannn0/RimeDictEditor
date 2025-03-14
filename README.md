@@ -1,5 +1,5 @@
 ### RimeDictEditor
-
+[中文](https://github.com/iaaaannn0/RimeDictEditor/blob/main/ReadMe_CN.md)
 #### Description
 
 A simple editor for managing Rime dictionary files. This tool allows users to easily edit words, pinyin, and weights in a table format.
